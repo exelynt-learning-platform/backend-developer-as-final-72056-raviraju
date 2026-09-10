@@ -26,6 +26,7 @@ import com.raviraju.resource_booking_api.exception.ResourceNotFoundException;
 import com.raviraju.resource_booking_api.repository.ReservationRepository;
 import com.raviraju.resource_booking_api.repository.UserRepository;
 
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +44,8 @@ public class ReservationService {
 
         validateReservationTimes(request.getStartTime(), request.getEndTime());
 
-        Resource resource = resourceService.findResourceEntityById(request.getResourceId());
+        // Acquire pessimistic lock on the resource row to prevent concurrent race conditions
+        Resource resource = resourceService.findResourceEntityByIdForUpdate(request.getResourceId());
         if (!resource.isAvailable()) {
             throw new BadRequestException("Resource '" + resource.getName() + "' is currently not available for booking.");
         }
@@ -155,6 +157,12 @@ public class ReservationService {
             BigDecimal maxPrice
     ) {
         return (root, query, criteriaBuilder) -> {
+            // Eagerly fetch join user and resource to prevent N+1 queries during response mapping (skip for count queries)
+            if (query != null && query.getResultType() != Long.class && query.getResultType() != long.class) {
+                root.fetch("resource", JoinType.LEFT);
+                root.fetch("user", JoinType.LEFT);
+            }
+
             List<Predicate> predicates = new ArrayList<>();
 
             // Non-admin users can only view their own reservations
@@ -179,13 +187,10 @@ public class ReservationService {
     }
 
     private void validateReservationTimes(LocalDateTime startTime, LocalDateTime endTime) {
-        if (startTime == null || endTime == null) {
-            throw new BadRequestException("Start time and end time are required.");
-        }
-        if (!startTime.isAfter(LocalDateTime.now())) {
+        if (startTime != null && !startTime.isAfter(LocalDateTime.now())) {
             throw new BadRequestException("Start time must be in the future.");
         }
-        if (!startTime.isBefore(endTime)) {
+        if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
             throw new BadRequestException("Start time must be strictly before end time.");
         }
     }

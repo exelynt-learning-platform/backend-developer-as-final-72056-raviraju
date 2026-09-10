@@ -2,6 +2,7 @@ package com.raviraju.resource_booking_api.controller;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Set;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,6 +25,7 @@ import com.raviraju.resource_booking_api.dto.ReservationRequest;
 import com.raviraju.resource_booking_api.dto.ReservationResponse;
 import com.raviraju.resource_booking_api.dto.ReservationStatusUpdateRequest;
 import com.raviraju.resource_booking_api.entity.ReservationStatus;
+import com.raviraju.resource_booking_api.exception.BadRequestException;
 import com.raviraju.resource_booking_api.service.ReservationService;
 
 import jakarta.validation.Valid;
@@ -33,6 +35,10 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
 public class ReservationController {
+
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
+            "id", "startTime", "endTime", "price", "status"
+    );
 
     private final ReservationService reservationService;
 
@@ -55,6 +61,7 @@ public class ReservationController {
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             Principal principal
     ) {
+        validateSort(pageable);
         PageResponse<ReservationResponse> response = reservationService.getReservations(
                 principal.getName(), status, minPrice, maxPrice, pageable);
         return ResponseEntity.ok(response);
@@ -97,5 +104,14 @@ public class ReservationController {
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
         reservationService.deleteReservation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private void validateSort(Pageable pageable) {
+        for (Sort.Order order : pageable.getSort()) {
+            if (!ALLOWED_SORT_PROPERTIES.contains(order.getProperty())) {
+                throw new BadRequestException("Invalid sort property: '" + order.getProperty() +
+                        "'. Allowed sort properties are: " + ALLOWED_SORT_PROPERTIES);
+            }
+        }
     }
 }

@@ -46,6 +46,12 @@ public class ResourceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + id));
     }
 
+    @Transactional
+    public Resource findResourceEntityByIdForUpdate(Long id) {
+        return resourceRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + id));
+    }
+
     @Transactional(readOnly = true)
     public List<ResourceResponse> getAllResources(ResourceType type, Boolean available) {
         List<Resource> resources;

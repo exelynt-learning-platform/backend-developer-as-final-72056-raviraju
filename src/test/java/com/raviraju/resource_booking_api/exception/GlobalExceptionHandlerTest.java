@@ -11,13 +11,16 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.raviraju.resource_booking_api.dto.ErrorResponse;
 
@@ -70,6 +73,16 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleConflict_DataIntegrityViolation_ReturnsConflictStatus() {
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("duplicate key");
+
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleConflict(ex, request);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertTrue(response.getBody().getMessage().contains("Database integrity constraint violation"));
+    }
+
+    @Test
     void handleBadRequest_ReturnsBadRequestStatus() {
         BadRequestException ex = new BadRequestException("Invalid input params");
 
@@ -77,6 +90,27 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Invalid input params", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleBadRequest_HttpMessageNotReadable_ReturnsBadRequest() {
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("JSON parse error");
+
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleBadRequest(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Malformed or unreadable JSON request body.", response.getBody().getMessage());
+    }
+
+    @Test
+    void handleBadRequest_TypeMismatch_ReturnsBadRequest() {
+        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
+                "abc", Long.class, "id", null, null);
+
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleBadRequest(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().getMessage().contains("Parameter 'id' has an invalid value"));
     }
 
     @Test

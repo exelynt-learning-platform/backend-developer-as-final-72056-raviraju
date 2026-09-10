@@ -25,16 +25,26 @@ public class JwtService {
     @Value("${app.jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;
 
+    @Value("${spring.profiles.active:dev}")
+    private String activeProfile;
+
     private SecretKey signingKey;
 
     @PostConstruct
     public void init() {
-        if (jwtSecret != null && !jwtSecret.trim().isEmpty() && jwtSecret.trim().length() >= 32) {
+        if (jwtSecret != null && !jwtSecret.trim().isEmpty()) {
+            if (jwtSecret.trim().length() < 32) {
+                throw new IllegalStateException("JWT_SECRET must be at least 32 characters (256 bits) long for secure HS256 signing.");
+            }
             byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
             this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         } else {
+            // In non-dev/non-test profiles, fail fast if JWT_SECRET is not provided
+            if (activeProfile != null && !activeProfile.contains("dev") && !activeProfile.contains("test")) {
+                throw new IllegalStateException("JWT_SECRET environment variable is strictly required in production profiles.");
+            }
             this.signingKey = Jwts.SIG.HS256.key().build();
-            log.info("JWT_SECRET not provided via env; generated secure random ephemeral signing key.");
+            log.warn("JWT_SECRET not configured; generated ephemeral development signing key.");
         }
     }
 
@@ -67,16 +77,10 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        final Claims claims = extractAllClaims(token);
+        final String extractedUsername = claims.getSubject();
+        final boolean isExpired = claims.getExpiration().before(new Date());
+        return (username != null && username.equals(extractedUsername) && !isExpired);
     }
 
     private Claims extractAllClaims(String token) {

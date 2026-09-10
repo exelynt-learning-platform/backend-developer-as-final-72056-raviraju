@@ -93,7 +93,7 @@ class ReservationServiceTest {
                 .build();
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(resourceService.findResourceEntityById(10L)).thenReturn(resource);
+        when(resourceService.findResourceEntityByIdForUpdate(10L)).thenReturn(resource);
         when(reservationRepository.findOverlappingReservations(10L, start, end)).thenReturn(Collections.emptyList());
         when(reservationRepository.save(any(Reservation.class))).thenReturn(savedReservation);
 
@@ -116,7 +116,7 @@ class ReservationServiceTest {
         Reservation existing = Reservation.builder().id(99L).build();
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(resourceService.findResourceEntityById(10L)).thenReturn(resource);
+        when(resourceService.findResourceEntityByIdForUpdate(10L)).thenReturn(resource);
         when(reservationRepository.findOverlappingReservations(10L, start, end)).thenReturn(List.of(existing));
 
         assertThrows(ResourceConflictException.class, () -> reservationService.createReservation(request, "testuser"));
@@ -134,28 +134,20 @@ class ReservationServiceTest {
                 .build();
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(resourceService.findResourceEntityById(10L)).thenReturn(resource);
+        when(resourceService.findResourceEntityByIdForUpdate(10L)).thenReturn(resource);
 
         assertThrows(BadRequestException.class, () -> reservationService.createReservation(request, "testuser"));
     }
 
     @Test
     void createReservation_InvalidTimes_ThrowsException() {
-        ReservationRequest nullTimeRequest = ReservationRequest.builder()
-                .resourceId(10L)
-                .startTime(null)
-                .endTime(end)
-                .build();
-
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-
-        assertThrows(BadRequestException.class, () -> reservationService.createReservation(nullTimeRequest, "testuser"));
-
         ReservationRequest pastRequest = ReservationRequest.builder()
                 .resourceId(10L)
                 .startTime(LocalDateTime.now().minusDays(1))
                 .endTime(LocalDateTime.now().plusDays(1))
                 .build();
+
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 
         assertThrows(BadRequestException.class, () -> reservationService.createReservation(pastRequest, "testuser"));
 

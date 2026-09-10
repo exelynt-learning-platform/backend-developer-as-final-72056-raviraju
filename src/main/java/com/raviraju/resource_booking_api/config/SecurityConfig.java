@@ -70,8 +70,8 @@ public class SecurityConfig {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     
-                    String jwtError = (String) request.getAttribute("jwt_error");
-                    String message = (jwtError != null) ? "Invalid or expired token: " + jwtError : "Full authentication is required to access this resource";
+                    boolean isJwtError = (request.getAttribute("jwt_error") != null);
+                    String message = isJwtError ? "Invalid or expired token" : "Full authentication is required to access this resource";
                     
                     ErrorResponse errorResponse = ErrorResponse.builder()
                             .timestamp(LocalDateTime.now())

@@ -173,4 +173,12 @@ class ReservationControllerTest {
         mockMvc.perform(delete("/api/reservations/10"))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    @WithMockUser(username = "alice", roles = "USER")
+    void getReservations_InvalidSortProperty_ReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/reservations?sort=user.password,desc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Bad Request"));
+    }
 }

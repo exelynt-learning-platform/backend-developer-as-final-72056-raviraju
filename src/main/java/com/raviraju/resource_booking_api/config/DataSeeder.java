@@ -2,6 +2,7 @@ package com.raviraju.resource_booking_api.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,12 @@ public class DataSeeder implements CommandLineRunner {
     private final ResourceRepository resourceRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${SEED_ADMIN_PASSWORD:admin123}")
+    private String seedAdminPassword;
+
+    @Value("${SEED_USER_PASSWORD:user123}")
+    private String seedUserPassword;
+
     @Override
     public void run(String... args) {
         seedUsers();
@@ -38,7 +45,7 @@ public class DataSeeder implements CommandLineRunner {
             User admin = User.builder()
                     .username("admin")
                     .email("admin@booking.com")
-                    .password(passwordEncoder.encode("admin123"))
+                    .password(passwordEncoder.encode(seedAdminPassword))
                     .role(Role.ADMIN)
                     .build();
             userRepository.save(admin);
@@ -49,7 +56,7 @@ public class DataSeeder implements CommandLineRunner {
             User normalUser = User.builder()
                     .username("user")
                     .email("user@booking.com")
-                    .password(passwordEncoder.encode("user123"))
+                    .password(passwordEncoder.encode(seedUserPassword))
                     .role(Role.USER)
                     .build();
             userRepository.save(normalUser);
