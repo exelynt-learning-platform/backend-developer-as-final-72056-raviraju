@@ -28,10 +28,10 @@ public class DataSeeder implements CommandLineRunner {
     private final ResourceRepository resourceRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${SEED_ADMIN_PASSWORD:}")
+    @Value("${SEED_ADMIN_PASSWORD:Admin@123}")
     private String seedAdminPassword;
 
-    @Value("${SEED_USER_PASSWORD:}")
+    @Value("${SEED_USER_PASSWORD:User@123}")
     private String seedUserPassword;
 
     @Override
@@ -50,13 +50,8 @@ public class DataSeeder implements CommandLineRunner {
                         .role(Role.ADMIN)
                         .build();
                 userRepository.save(admin);
-                log.info("Seeded dev ADMIN user (username='admin') from SEED_ADMIN_PASSWORD.");
+                log.info("Seeded dev ADMIN user (username='admin').");
             }
-        } else {
-            log.warn("=========================================================================");
-            log.warn("NOTICE: SEED_ADMIN_PASSWORD not set. Skipping automatic admin user creation.");
-            log.warn("To provision an initial admin account in dev, set SEED_ADMIN_PASSWORD.");
-            log.warn("=========================================================================");
         }
 
         if (seedUserPassword != null && !seedUserPassword.isBlank()) {
@@ -68,10 +63,8 @@ public class DataSeeder implements CommandLineRunner {
                         .role(Role.USER)
                         .build();
                 userRepository.save(normalUser);
-                log.info("Seeded dev USER user (username='user') from SEED_USER_PASSWORD.");
+                log.info("Seeded dev USER user (username='user').");
             }
-        } else {
-            log.info("SEED_USER_PASSWORD not set. Skipping automatic user account creation.");
         }
     }
 
