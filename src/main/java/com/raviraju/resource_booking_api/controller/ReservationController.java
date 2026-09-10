@@ -25,7 +25,6 @@ import com.raviraju.resource_booking_api.dto.ReservationRequest;
 import com.raviraju.resource_booking_api.dto.ReservationResponse;
 import com.raviraju.resource_booking_api.dto.ReservationStatusUpdateRequest;
 import com.raviraju.resource_booking_api.entity.ReservationStatus;
-import com.raviraju.resource_booking_api.exception.BadRequestException;
 import com.raviraju.resource_booking_api.service.ReservationService;
 
 import jakarta.validation.Valid;
