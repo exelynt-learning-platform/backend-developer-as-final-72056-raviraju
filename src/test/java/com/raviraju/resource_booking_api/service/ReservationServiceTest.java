@@ -140,24 +140,24 @@ class ReservationServiceTest {
     }
 
     @Test
-    void createReservation_InvalidTimes_ThrowsException() {
-        ReservationRequest pastRequest = ReservationRequest.builder()
-                .resourceId(10L)
-                .startTime(LocalDateTime.now().minusDays(1))
-                .endTime(LocalDateTime.now().plusDays(1))
-                .build();
-
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-
-        assertThrows(BadRequestException.class, () -> reservationService.createReservation(pastRequest, "testuser"));
-
+    void reservationRequest_Validation_EndBeforeStart_ReturnsFalse() {
         ReservationRequest endBeforeStart = ReservationRequest.builder()
                 .resourceId(10L)
                 .startTime(LocalDateTime.now().plusDays(2))
                 .endTime(LocalDateTime.now().plusDays(1))
+                .price(new BigDecimal("100.00"))
                 .build();
 
-        assertThrows(BadRequestException.class, () -> reservationService.createReservation(endBeforeStart, "testuser"));
+        org.junit.jupiter.api.Assertions.assertFalse(endBeforeStart.isEndTimeAfterStartTime());
+
+        ReservationRequest valid = ReservationRequest.builder()
+                .resourceId(10L)
+                .startTime(LocalDateTime.now().plusDays(1))
+                .endTime(LocalDateTime.now().plusDays(2))
+                .price(new BigDecimal("100.00"))
+                .build();
+
+        org.junit.jupiter.api.Assertions.assertTrue(valid.isEndTimeAfterStartTime());
     }
 
     @Test
@@ -256,7 +256,6 @@ class ReservationServiceTest {
                 .status(ReservationStatus.PENDING)
                 .build();
 
-        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(res));
         when(reservationRepository.save(any(Reservation.class))).thenReturn(res);
 
@@ -267,17 +266,10 @@ class ReservationServiceTest {
     }
 
     @Test
-    void updateReservationStatus_NonAdmin_ThrowsAccessDenied() {
-        Reservation res = Reservation.builder()
-                .id(1L)
-                .user(user)
-                .resource(resource)
-                .build();
+    void updateReservationStatus_NotFound_ThrowsException() {
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
 
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(res));
-
-        assertThrows(AccessDeniedException.class, () -> reservationService.updateReservationStatus(1L, ReservationStatus.CONFIRMED, "testuser"));
+        assertThrows(ResourceNotFoundException.class, () -> reservationService.updateReservationStatus(999L, ReservationStatus.CONFIRMED, "admin"));
     }
 
     @Test

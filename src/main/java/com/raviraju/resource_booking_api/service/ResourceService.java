@@ -41,13 +41,13 @@ public class ResourceService {
     }
 
     @Transactional(readOnly = true)
-    public Resource findResourceEntityById(Long id) {
+    Resource findResourceEntityById(Long id) {
         return resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + id));
     }
 
     @Transactional
-    public Resource findResourceEntityByIdForUpdate(Long id) {
+    Resource findResourceEntityByIdForUpdate(Long id) {
         return resourceRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + id));
     }

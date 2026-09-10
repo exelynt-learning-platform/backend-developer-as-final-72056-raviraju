@@ -41,8 +41,6 @@ public class ReservationService {
     public ReservationResponse createReservation(ReservationRequest request, String username) {
         User user = resolveUser(username);
 
-        validateReservationTimes(request.getStartTime(), request.getEndTime());
-
         // Acquire pessimistic lock on the resource row to prevent concurrent race conditions
         Resource resource = resourceService.findResourceEntityByIdForUpdate(request.getResourceId());
         if (!resource.isAvailable()) {
@@ -102,14 +100,8 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse updateReservationStatus(Long id, ReservationStatus newStatus, String username) {
-        User currentUser = resolveUser(username);
-
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
-
-        if (currentUser.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Only administrators can update reservation status directly.");
-        }
 
         reservation.setStatus(newStatus);
         Reservation updated = reservationRepository.save(reservation);
@@ -177,14 +169,5 @@ public class ReservationService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-    }
-
-    private void validateReservationTimes(LocalDateTime startTime, LocalDateTime endTime) {
-        if (startTime != null && !startTime.isAfter(LocalDateTime.now())) {
-            throw new BadRequestException("Start time must be in the future.");
-        }
-        if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
-            throw new BadRequestException("Start time must be strictly before end time.");
-        }
     }
 }

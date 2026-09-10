@@ -39,12 +39,22 @@ public class JwtService {
             byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
             this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         } else {
+            java.util.List<String> activeProfiles = activeProfile != null
+                    ? java.util.Arrays.asList(activeProfile.split(","))
+                    : java.util.Collections.emptyList();
+            boolean isDevOrTest = activeProfiles.stream().anyMatch(p -> {
+                String trimmed = p.trim();
+                return trimmed.equalsIgnoreCase("dev") || trimmed.equalsIgnoreCase("test");
+            });
+
             // In non-dev/non-test profiles, fail fast if JWT_SECRET is not provided
-            if (activeProfile != null && !activeProfile.contains("dev") && !activeProfile.contains("test")) {
+            if (!isDevOrTest) {
                 throw new IllegalStateException("JWT_SECRET environment variable is strictly required in production profiles.");
             }
+            // In development mode without an explicit JWT_SECRET, an ephemeral key is generated for convenience.
+            // Note that all issued tokens will be invalidated upon application server restart.
             this.signingKey = Jwts.SIG.HS256.key().build();
-            log.warn("JWT_SECRET not configured; generated ephemeral development signing key.");
+            log.warn("JWT_SECRET not configured; generated ephemeral development signing key (tokens invalidate on restart).");
         }
     }
 

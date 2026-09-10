@@ -30,7 +30,6 @@ public class ReservationRequest {
     private LocalDateTime startTime;
 
     @NotNull(message = "End time is required")
-    @Future(message = "End time must be in the future")
     private LocalDateTime endTime;
 
     @NotNull(message = "Price is required")

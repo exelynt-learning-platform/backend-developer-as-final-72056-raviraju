@@ -52,7 +52,7 @@ public class DataSeeder implements CommandLineRunner {
                     .role(Role.ADMIN)
                     .build();
             userRepository.save(admin);
-            log.info("Seeded dev ADMIN user (username='admin', password='{}')", adminPassword);
+            log.info("Seeded dev ADMIN user (username='admin'). Configure SEED_ADMIN_PASSWORD to customize credentials.");
         }
 
         if (!userRepository.existsByUsername("user")) {
@@ -66,7 +66,7 @@ public class DataSeeder implements CommandLineRunner {
                     .role(Role.USER)
                     .build();
             userRepository.save(normalUser);
-            log.info("Seeded dev USER user (username='user', password='{}')", userPassword);
+            log.info("Seeded dev USER user (username='user'). Configure SEED_USER_PASSWORD to customize credentials.");
         }
     }
 
