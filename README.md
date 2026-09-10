@@ -96,14 +96,14 @@ Run the complete test suite including security tests, controller endpoint tests,
 
 ---
 
-## Default Seeded Accounts
+## Development Seeded Accounts
  
-When running with the `dev` profile (active by default for development), the application automatically provisions initial accounts for testing:
+When running with the `dev` profile (active by default for development), the application automatically provisions initial accounts for testing. Passwords can be configured via `SEED_ADMIN_PASSWORD` and `SEED_USER_PASSWORD` environment variables; if not provided, randomly generated secure credentials are created and logged to the application console on startup:
 
-| Username | Password | Role | Description |
-|:---|:---|:---|:---|
-| `admin` | `admin123` | `ROLE_ADMIN` | Full CRUD permissions on resources and all reservations |
-| `user` | `user123` | `ROLE_USER` | Can browse resources and create/manage own reservations |
+| Username | Role | Description |
+|:---|:---|:---|
+| `admin` | `ROLE_ADMIN` | Full CRUD permissions on resources and all reservations |
+| `user` | `ROLE_USER` | Can browse resources and create/manage own reservations |
 
 *(The seeder is restricted to the `dev` profile and disabled in production).*
 

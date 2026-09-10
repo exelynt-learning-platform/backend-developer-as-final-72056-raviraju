@@ -1,7 +1,9 @@
 package com.raviraju.resource_booking_api.service;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +14,6 @@ import com.raviraju.resource_booking_api.dto.RegisterRequest;
 import com.raviraju.resource_booking_api.entity.Role;
 import com.raviraju.resource_booking_api.entity.User;
 import com.raviraju.resource_booking_api.exception.BadRequestException;
-import com.raviraju.resource_booking_api.exception.ResourceNotFoundException;
 import com.raviraju.resource_booking_api.repository.UserRepository;
 import com.raviraju.resource_booking_api.security.JwtService;
 
@@ -49,13 +50,19 @@ public class AuthService {
         return new LoginResponse(token, user.getUsername(), user.getRole().name());
     }
 
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getUsername()));
+        User user;
+        if (authentication != null && authentication.getPrincipal() instanceof User authenticatedUser) {
+            user = authenticatedUser;
+        } else {
+            user = userRepository.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+        }
 
         String token = jwtService.generateToken(user.getUsername());
         return new LoginResponse(token, user.getUsername(), user.getRole().name());

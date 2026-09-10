@@ -111,7 +111,23 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_Success() {
+    void login_Success_WithPrincipal() {
+        LoginRequest request = new LoginRequest("testuser", "password123");
+        org.springframework.security.core.Authentication auth = org.mockito.Mockito.mock(org.springframework.security.core.Authentication.class);
+        when(auth.getPrincipal()).thenReturn(sampleUser);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
+        when(jwtService.generateToken("testuser")).thenReturn("mockJwtToken");
+
+        LoginResponse response = authService.login(request);
+
+        assertNotNull(response);
+        assertEquals("mockJwtToken", response.getToken());
+        assertEquals("testuser", response.getUsername());
+        assertEquals("USER", response.getRole());
+    }
+
+    @Test
+    void login_Success_FallbackToRepository() {
         LoginRequest request = new LoginRequest("testuser", "password123");
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
@@ -127,12 +143,12 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_UserNotFound_ThrowsException() {
+    void login_UserNotFound_ThrowsBadCredentialsException() {
         LoginRequest request = new LoginRequest("unknown", "password123");
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
         when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> authService.login(request));
+        assertThrows(org.springframework.security.authentication.BadCredentialsException.class, () -> authService.login(request));
     }
 }

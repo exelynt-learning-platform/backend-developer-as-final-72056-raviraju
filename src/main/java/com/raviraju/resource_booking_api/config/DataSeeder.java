@@ -28,10 +28,10 @@ public class DataSeeder implements CommandLineRunner {
     private final ResourceRepository resourceRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${SEED_ADMIN_PASSWORD:admin123}")
+    @Value("${SEED_ADMIN_PASSWORD:}")
     private String seedAdminPassword;
 
-    @Value("${SEED_USER_PASSWORD:user123}")
+    @Value("${SEED_USER_PASSWORD:}")
     private String seedUserPassword;
 
     @Override
@@ -42,25 +42,31 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedUsers() {
         if (!userRepository.existsByUsername("admin")) {
+            String adminPassword = (seedAdminPassword != null && !seedAdminPassword.isBlank())
+                    ? seedAdminPassword
+                    : java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
             User admin = User.builder()
                     .username("admin")
                     .email("admin@booking.com")
-                    .password(passwordEncoder.encode(seedAdminPassword))
+                    .password(passwordEncoder.encode(adminPassword))
                     .role(Role.ADMIN)
                     .build();
             userRepository.save(admin);
-            log.info("Seeded dev ADMIN user (username='admin')");
+            log.info("Seeded dev ADMIN user (username='admin', password='{}')", adminPassword);
         }
 
         if (!userRepository.existsByUsername("user")) {
+            String userPassword = (seedUserPassword != null && !seedUserPassword.isBlank())
+                    ? seedUserPassword
+                    : java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
             User normalUser = User.builder()
                     .username("user")
                     .email("user@booking.com")
-                    .password(passwordEncoder.encode(seedUserPassword))
+                    .password(passwordEncoder.encode(userPassword))
                     .role(Role.USER)
                     .build();
             userRepository.save(normalUser);
-            log.info("Seeded dev USER user (username='user')");
+            log.info("Seeded dev USER user (username='user', password='{}')", userPassword);
         }
     }
 
