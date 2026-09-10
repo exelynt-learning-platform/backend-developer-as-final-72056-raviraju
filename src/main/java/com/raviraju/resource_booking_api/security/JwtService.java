@@ -84,15 +84,20 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, String username) {
-        final Claims claims = extractAllClaims(token);
-        final String extractedUsername = claims.getSubject();
-        final boolean isExpired = claims.getExpiration().before(new Date());
-        return (username != null && username.equals(extractedUsername) && !isExpired);
+        try {
+            final Claims claims = extractAllClaims(token);
+            final String extractedUsername = claims.getSubject();
+            final boolean isExpired = claims.getExpiration().before(new Date(System.currentTimeMillis() - 60_000));
+            return (username != null && username.equals(extractedUsername) && !isExpired);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
+                .clockSkewSeconds(60)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

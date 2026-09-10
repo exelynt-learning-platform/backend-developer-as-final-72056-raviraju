@@ -27,7 +27,9 @@ import com.raviraju.resource_booking_api.repository.UserRepository;
 
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
@@ -102,6 +104,7 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
 
+        log.info("Admin '{}' updated status of reservation ID {} to {}", username, id, newStatus);
         reservation.setStatus(newStatus);
         Reservation updated = reservationRepository.save(reservation);
         return ReservationResponse.fromEntity(updated);
