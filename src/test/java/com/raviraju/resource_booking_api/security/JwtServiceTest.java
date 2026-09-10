@@ -16,6 +16,7 @@ class JwtServiceTest {
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "jwtSecret", "SuperSecretKeyForJwtTestingPurposesOnlyAtLeast32CharsLong12345");
         ReflectionTestUtils.setField(jwtService, "jwtExpirationMs", 3600000L);
+        jwtService.init();
     }
 
     @Test

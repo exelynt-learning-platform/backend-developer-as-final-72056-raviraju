@@ -69,10 +69,8 @@ public class SecurityConfig {
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    
                     boolean isJwtError = (request.getAttribute("jwt_error") != null);
                     String message = isJwtError ? "Invalid or expired token" : "Full authentication is required to access this resource";
-                    
                     ErrorResponse errorResponse = ErrorResponse.builder()
                             .timestamp(LocalDateTime.now())
                             .status(HttpServletResponse.SC_UNAUTHORIZED)
@@ -85,7 +83,6 @@ public class SecurityConfig {
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    
                     ErrorResponse errorResponse = ErrorResponse.builder()
                             .timestamp(LocalDateTime.now())
                             .status(HttpServletResponse.SC_FORBIDDEN)

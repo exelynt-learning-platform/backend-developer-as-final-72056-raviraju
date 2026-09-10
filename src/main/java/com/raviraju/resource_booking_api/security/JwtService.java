@@ -49,9 +49,6 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        if (this.signingKey == null) {
-            init();
-        }
         return this.signingKey;
     }
 
