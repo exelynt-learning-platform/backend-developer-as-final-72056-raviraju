@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raviraju.resource_booking_api.dto.LoginRequest;
 import com.raviraju.resource_booking_api.dto.LoginResponse;
 import com.raviraju.resource_booking_api.dto.RegisterRequest;
-import com.raviraju.resource_booking_api.entity.Role;
 import com.raviraju.resource_booking_api.service.AuthService;
 
 @SpringBootTest
@@ -29,7 +28,7 @@ class AuthControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    @MockitoBean
+    @MockBean
     private AuthService authService;
 
     @Test

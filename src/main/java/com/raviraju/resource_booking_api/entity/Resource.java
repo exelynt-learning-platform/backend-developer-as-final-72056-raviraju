@@ -1,5 +1,6 @@
 package com.raviraju.resource_booking_api.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,12 +27,15 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ResourceType type;
 
     private String description;
 
+    @Column(nullable = false)
     private boolean available;
 }

@@ -2,6 +2,8 @@ package com.raviraju.resource_booking_api.security;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -54,8 +58,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            // Malformed, expired, or invalid token: skip authentication so filter chain rejects request
-            logger.debug("Could not authenticate JWT token: " + ex.getMessage());
+            log.warn("JWT authentication failed for request [{}]: {}", request.getRequestURI(), ex.getMessage());
+            request.setAttribute("jwt_error", ex.getMessage());
         }
 
         filterChain.doFilter(request, response);

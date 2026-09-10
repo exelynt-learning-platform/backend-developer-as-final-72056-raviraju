@@ -2,24 +2,31 @@ package com.raviraju.resource_booking_api.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.raviraju.resource_booking_api.dto.PageResponse;
 import com.raviraju.resource_booking_api.dto.ReservationRequest;
 import com.raviraju.resource_booking_api.dto.ReservationResponse;
 import com.raviraju.resource_booking_api.dto.ReservationStatusUpdateRequest;
@@ -35,7 +42,7 @@ class ReservationControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    @MockitoBean
+    @MockBean
     private ReservationService reservationService;
 
     @Test
@@ -78,6 +85,57 @@ class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "alice", roles = "USER")
+    void getReservations_Success() throws Exception {
+        ReservationResponse res = ReservationResponse.builder()
+                .id(10L)
+                .resourceName("Meeting Room")
+                .username("alice")
+                .status(ReservationStatus.PENDING)
+                .build();
+
+        PageResponse<ReservationResponse> pageResponse = PageResponse.of(new PageImpl<>(List.of(res)));
+        when(reservationService.getReservations(eq("alice"), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(pageResponse);
+
+        mockMvc.perform(get("/api/reservations"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(10L));
+    }
+
+    @Test
+    @WithMockUser(username = "alice", roles = "USER")
+    void getReservationById_Success() throws Exception {
+        ReservationResponse res = ReservationResponse.builder()
+                .id(10L)
+                .resourceName("Meeting Room")
+                .username("alice")
+                .status(ReservationStatus.PENDING)
+                .build();
+
+        when(reservationService.getReservationById(eq(10L), eq("alice"))).thenReturn(res);
+
+        mockMvc.perform(get("/api/reservations/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10L));
+    }
+
+    @Test
+    @WithMockUser(username = "alice", roles = "USER")
+    void cancelReservation_Success() throws Exception {
+        ReservationResponse res = ReservationResponse.builder()
+                .id(10L)
+                .status(ReservationStatus.CANCELLED)
+                .build();
+
+        when(reservationService.cancelReservation(eq(10L), eq("alice"))).thenReturn(res);
+
+        mockMvc.perform(patch("/api/reservations/10/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+    }
+
+    @Test
+    @WithMockUser(username = "alice", roles = "USER")
     void updateReservationStatus_AsUser_Forbidden() throws Exception {
         ReservationStatusUpdateRequest request = new ReservationStatusUpdateRequest(ReservationStatus.CONFIRMED);
 
@@ -105,5 +163,14 @@ class ReservationControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void deleteReservation_AsAdmin_Success() throws Exception {
+        doNothing().when(reservationService).deleteReservation(10L);
+
+        mockMvc.perform(delete("/api/reservations/10"))
+                .andExpect(status().isNoContent());
     }
 }

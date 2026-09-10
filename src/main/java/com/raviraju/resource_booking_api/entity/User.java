@@ -1,5 +1,6 @@
 package com.raviraju.resource_booking_api.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,12 +27,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String username;
 
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 }

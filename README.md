@@ -21,6 +21,8 @@ A RESTful backend service built with Spring Boot, Spring Security, JWT, JPA, and
 - **Filtering, Pagination & Sorting**:
   - Filter reservations dynamically using JPA `Specification` by status, minimum price, and maximum price.
   - Supports `page`, `size`, `sortBy`, and `sortDir` parameters.
+- **Swagger / OpenAPI Documentation**:
+  - Interactive Swagger UI documentation with Bearer JWT token support at `/swagger-ui.html` and OpenAPI specification at `/v3/api-docs`.
 - **Automated Startup Data Seeder**:
   - Automatically seeds default test users and sample resources on application startup in `dev` profile.
 
@@ -29,10 +31,11 @@ A RESTful backend service built with Spring Boot, Spring Security, JWT, JPA, and
 ## Tech Stack
 
 - **Java 17+**
-- **Spring Boot 3.x / 4.x** (Spring Web, Spring Security, Spring Data JPA, Validation)
+- **Spring Boot 3.3.4** (Spring Web, Spring Security, Spring Data JPA, Validation)
+- **API Documentation**: SpringDoc OpenAPI 3 (`springdoc-openapi-starter-webmvc-ui:2.5.0`)
 - **Database**: MySQL / PostgreSQL (H2 in-memory used for test profile)
 - **Authentication**: Stateless JWT (`io.jsonwebtoken:jjwt-api:0.12.6`)
-- **Testing**: JUnit 5, Mockito, Spring Boot Test, MockMvc
+- **Testing**: JUnit 5, Mockito, Spring Boot Test, MockMvc, JaCoCo Code Coverage
 
 ---
 
