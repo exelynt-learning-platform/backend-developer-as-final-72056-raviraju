@@ -39,8 +39,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse createReservation(ReservationRequest request, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+        User user = resolveUser(username);
 
         validateReservationTimes(request.getStartTime(), request.getEndTime());
 
@@ -63,7 +62,7 @@ public class ReservationService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .price(request.getPrice())
-                .status(ReservationStatus.CONFIRMED)
+                .status(ReservationStatus.PENDING)
                 .build();
 
         Reservation saved = reservationRepository.save(reservation);
@@ -78,31 +77,8 @@ public class ReservationService {
             BigDecimal maxPrice,
             Pageable pageable
     ) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
-
-        Specification<Reservation> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            // Non-admin users can only view their own reservations
-            if (user.getRole() != Role.ADMIN) {
-                predicates.add(criteriaBuilder.equal(root.get("user"), user));
-            }
-
-            if (status != null) {
-                predicates.add(criteriaBuilder.equal(root.get("status"), status));
-            }
-
-            if (minPrice != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice));
-            }
-
-            if (maxPrice != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
-            }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
+        User user = resolveUser(username);
+        Specification<Reservation> spec = buildReservationSpec(user, status, minPrice, maxPrice);
 
         Page<Reservation> page = reservationRepository.findAll(spec, pageable);
         Page<ReservationResponse> responsePage = page.map(ReservationResponse::fromEntity);
@@ -111,8 +87,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public ReservationResponse getReservationById(Long id, String username) {
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+        User currentUser = resolveUser(username);
 
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
@@ -126,8 +101,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse updateReservationStatus(Long id, ReservationStatus newStatus, String username) {
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+        User currentUser = resolveUser(username);
 
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
@@ -143,8 +117,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse cancelReservation(Long id, String username) {
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+        User currentUser = resolveUser(username);
 
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found with id: " + id));
@@ -168,6 +141,41 @@ public class ReservationService {
             throw new ResourceNotFoundException("Reservation not found with id: " + id);
         }
         reservationRepository.deleteById(id);
+    }
+
+    private User resolveUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+    }
+
+    private Specification<Reservation> buildReservationSpec(
+            User user,
+            ReservationStatus status,
+            BigDecimal minPrice,
+            BigDecimal maxPrice
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Non-admin users can only view their own reservations
+            if (user.getRole() != Role.ADMIN) {
+                predicates.add(criteriaBuilder.equal(root.get("user"), user));
+            }
+
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+
+            if (minPrice != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice));
+            }
+
+            if (maxPrice != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     private void validateReservationTimes(LocalDateTime startTime, LocalDateTime endTime) {

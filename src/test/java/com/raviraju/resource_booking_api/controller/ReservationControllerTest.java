@@ -54,7 +54,7 @@ class ReservationControllerTest {
                 .resourceName("Meeting Room")
                 .userId(5L)
                 .username("alice")
-                .status(ReservationStatus.CONFIRMED)
+                .status(ReservationStatus.PENDING)
                 .build();
 
         when(reservationService.createReservation(any(ReservationRequest.class), eq("alice"))).thenReturn(response);

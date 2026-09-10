@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.raviraju.resource_booking_api.dto.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -75,7 +77,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex, HttpServletRequest request) {
-        String msg = ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred";
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg, request);
+        log.error("Unhandled exception occurred while processing request to [{}]: ", request.getRequestURI(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.", request);
     }
 }

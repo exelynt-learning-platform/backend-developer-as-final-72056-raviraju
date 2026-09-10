@@ -77,7 +77,7 @@ class ReservationServiceTest {
                 .startTime(start)
                 .endTime(end)
                 .price(new BigDecimal("150.00"))
-                .status(ReservationStatus.CONFIRMED)
+                .status(ReservationStatus.PENDING)
                 .build();
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
@@ -89,7 +89,7 @@ class ReservationServiceTest {
 
         assertNotNull(response);
         assertEquals(100L, response.getId());
-        assertEquals(ReservationStatus.CONFIRMED, response.getStatus());
+        assertEquals(ReservationStatus.PENDING, response.getStatus());
     }
 
     @Test

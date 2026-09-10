@@ -3,6 +3,7 @@ package com.raviraju.resource_booking_api.config;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder implements CommandLineRunner {
@@ -40,7 +42,7 @@ public class DataSeeder implements CommandLineRunner {
                     .role(Role.ADMIN)
                     .build();
             userRepository.save(admin);
-            log.info("Seeded default ADMIN user: username='admin', password='admin123'");
+            log.info("Seeded dev ADMIN user (username='admin')");
         }
 
         if (!userRepository.existsByUsername("user")) {
@@ -51,7 +53,7 @@ public class DataSeeder implements CommandLineRunner {
                     .role(Role.USER)
                     .build();
             userRepository.save(normalUser);
-            log.info("Seeded default USER user: username='user', password='user123'");
+            log.info("Seeded dev USER user (username='user')");
         }
     }
 

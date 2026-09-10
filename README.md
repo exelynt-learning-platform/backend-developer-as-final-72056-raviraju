@@ -22,7 +22,7 @@ A RESTful backend service built with Spring Boot, Spring Security, JWT, JPA, and
   - Filter reservations dynamically using JPA `Specification` by status, minimum price, and maximum price.
   - Supports `page`, `size`, `sortBy`, and `sortDir` parameters.
 - **Automated Startup Data Seeder**:
-  - Automatically seeds default users (`admin/admin123`, `user/user123`) and sample resources on application startup.
+  - Automatically seeds default test users and sample resources on application startup in `dev` profile.
 
 ---
 
@@ -94,13 +94,15 @@ Run the complete test suite including security tests, controller endpoint tests,
 ---
 
 ## Default Seeded Accounts
-
-The application automatically provisions the following accounts on first startup:
+ 
+When running with the `dev` profile (active by default for development), the application automatically provisions initial accounts for testing:
 
 | Username | Password | Role | Description |
 |:---|:---|:---|:---|
 | `admin` | `admin123` | `ROLE_ADMIN` | Full CRUD permissions on resources and all reservations |
 | `user` | `user123` | `ROLE_USER` | Can browse resources and create/manage own reservations |
+
+*(The seeder is restricted to the `dev` profile and disabled in production).*
 
 ---
 
