@@ -28,4 +28,16 @@ class JwtServiceTest {
         assertEquals(username, jwtService.extractUsername(token));
         assertTrue(jwtService.isTokenValid(token, username));
     }
+
+    @Test
+    void validateToken_WrongUsername_ReturnsFalse() {
+        String token = jwtService.generateToken("testuser");
+        org.junit.jupiter.api.Assertions.assertFalse(jwtService.isTokenValid(token, "otheruser"));
+    }
+
+    @Test
+    void validateToken_NullOrMalformedToken_ReturnsFalse() {
+        org.junit.jupiter.api.Assertions.assertFalse(jwtService.isTokenValid("invalid.jwt.token", "testuser"));
+        org.junit.jupiter.api.Assertions.assertFalse(jwtService.isTokenValid(null, "testuser"));
+    }
 }
