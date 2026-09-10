@@ -12,19 +12,37 @@ import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class JwtService {
 
-    @Value("${app.jwt.secret}")
+    @Value("${app.jwt.secret:}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration-ms}")
+    @Value("${app.jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;
 
+    private SecretKey signingKey;
+
+    @PostConstruct
+    public void init() {
+        if (jwtSecret != null && !jwtSecret.trim().isEmpty() && jwtSecret.trim().length() >= 32) {
+            byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+            this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        } else {
+            this.signingKey = Jwts.SIG.HS256.key().build();
+            log.info("JWT_SECRET not provided via env; generated secure random ephemeral signing key.");
+        }
+    }
+
     private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+        if (this.signingKey == null) {
+            init();
+        }
+        return this.signingKey;
     }
 
     public String generateToken(String username) {

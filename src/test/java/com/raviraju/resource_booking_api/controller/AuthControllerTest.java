@@ -38,7 +38,6 @@ class AuthControllerTest {
                 .username("newuser")
                 .password("password123")
                 .email("new@booking.com")
-                .role(Role.USER)
                 .build();
 
         LoginResponse response = new LoginResponse("mockJwtToken", "newuser", "USER");

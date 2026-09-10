@@ -31,12 +31,12 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "resource_id")
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
+    @JoinColumn(name = "resource_id", nullable = false)
     private Resource resource;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     private LocalDateTime startTime;
