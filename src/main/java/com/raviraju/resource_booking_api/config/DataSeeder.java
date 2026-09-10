@@ -41,32 +41,37 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        if (!userRepository.existsByUsername("admin")) {
-            String adminPassword = (seedAdminPassword != null && !seedAdminPassword.isBlank())
-                    ? seedAdminPassword
-                    : java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-            User admin = User.builder()
-                    .username("admin")
-                    .email("admin@booking.com")
-                    .password(passwordEncoder.encode(adminPassword))
-                    .role(Role.ADMIN)
-                    .build();
-            userRepository.save(admin);
-            log.info("Seeded dev ADMIN user (username='admin'). Configure SEED_ADMIN_PASSWORD to customize credentials.");
+        if (seedAdminPassword != null && !seedAdminPassword.isBlank()) {
+            if (!userRepository.existsByUsername("admin")) {
+                User admin = User.builder()
+                        .username("admin")
+                        .email("admin@booking.com")
+                        .password(passwordEncoder.encode(seedAdminPassword.trim()))
+                        .role(Role.ADMIN)
+                        .build();
+                userRepository.save(admin);
+                log.info("Seeded dev ADMIN user (username='admin') from SEED_ADMIN_PASSWORD.");
+            }
+        } else {
+            log.warn("=========================================================================");
+            log.warn("NOTICE: SEED_ADMIN_PASSWORD not set. Skipping automatic admin user creation.");
+            log.warn("To provision an initial admin account in dev, set SEED_ADMIN_PASSWORD.");
+            log.warn("=========================================================================");
         }
 
-        if (!userRepository.existsByUsername("user")) {
-            String userPassword = (seedUserPassword != null && !seedUserPassword.isBlank())
-                    ? seedUserPassword
-                    : java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-            User normalUser = User.builder()
-                    .username("user")
-                    .email("user@booking.com")
-                    .password(passwordEncoder.encode(userPassword))
-                    .role(Role.USER)
-                    .build();
-            userRepository.save(normalUser);
-            log.info("Seeded dev USER user (username='user'). Configure SEED_USER_PASSWORD to customize credentials.");
+        if (seedUserPassword != null && !seedUserPassword.isBlank()) {
+            if (!userRepository.existsByUsername("user")) {
+                User normalUser = User.builder()
+                        .username("user")
+                        .email("user@booking.com")
+                        .password(passwordEncoder.encode(seedUserPassword.trim()))
+                        .role(Role.USER)
+                        .build();
+                userRepository.save(normalUser);
+                log.info("Seeded dev USER user (username='user') from SEED_USER_PASSWORD.");
+            }
+        } else {
+            log.info("SEED_USER_PASSWORD not set. Skipping automatic user account creation.");
         }
     }
 

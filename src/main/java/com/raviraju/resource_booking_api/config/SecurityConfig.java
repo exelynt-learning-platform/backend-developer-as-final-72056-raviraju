@@ -67,35 +67,37 @@ public class SecurityConfig {
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     boolean isJwtError = (request.getAttribute("jwt_error") != null);
                     String message = isJwtError ? "Invalid or expired token" : "Full authentication is required to access this resource";
-                    ErrorResponse errorResponse = ErrorResponse.builder()
-                            .timestamp(LocalDateTime.now())
-                            .status(HttpServletResponse.SC_UNAUTHORIZED)
-                            .error("Unauthorized")
-                            .message(message)
-                            .path(request.getRequestURI())
-                            .build();
-                    objectMapper.writeValue(response.getOutputStream(), errorResponse);
+                    writeSecurityErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", message, request.getRequestURI());
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    ErrorResponse errorResponse = ErrorResponse.builder()
-                            .timestamp(LocalDateTime.now())
-                            .status(HttpServletResponse.SC_FORBIDDEN)
-                            .error("Forbidden")
-                            .message("Access is denied. You do not have sufficient permissions.")
-                            .path(request.getRequestURI())
-                            .build();
-                    objectMapper.writeValue(response.getOutputStream(), errorResponse);
+                    writeSecurityErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden",
+                            "Access is denied. You do not have sufficient permissions.", request.getRequestURI());
                 })
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private void writeSecurityErrorResponse(
+            HttpServletResponse response,
+            int status,
+            String error,
+            String message,
+            String path
+    ) throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status)
+                .error(error)
+                .message(message)
+                .path(path)
+                .build();
+        objectMapper.writeValue(response.getOutputStream(), errorResponse);
     }
 }

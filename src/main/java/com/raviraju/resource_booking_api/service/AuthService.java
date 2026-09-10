@@ -56,14 +56,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
-        User user;
-        if (authentication != null && authentication.getPrincipal() instanceof User authenticatedUser) {
-            user = authenticatedUser;
-        } else {
-            user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
-        }
-
+        User user = (User) authentication.getPrincipal();
         String token = jwtService.generateToken(user.getUsername());
         return new LoginResponse(token, user.getUsername(), user.getRole().name());
     }
