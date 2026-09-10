@@ -25,6 +25,7 @@ import com.raviraju.resource_booking_api.exception.ResourceNotFoundException;
 import com.raviraju.resource_booking_api.repository.ReservationRepository;
 import com.raviraju.resource_booking_api.repository.UserRepository;
 
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -150,9 +151,16 @@ public class ReservationService {
             BigDecimal maxPrice
     ) {
         return (root, query, criteriaBuilder) -> {
+            if (query != null
+                    && query.getResultType() != Long.class
+                    && query.getResultType() != long.class) {
+                root.fetch("user", JoinType.LEFT);
+                root.fetch("resource", JoinType.LEFT);
+                query.distinct(true);
+            }
+
             List<Predicate> predicates = new ArrayList<>();
 
-            // Non-admin users can only view their own reservations
             if (user.getRole() != Role.ADMIN) {
                 predicates.add(criteriaBuilder.equal(root.get("user"), user));
             }

@@ -20,7 +20,7 @@ A RESTful backend service built with Spring Boot, Spring Security, JWT, JPA, and
   - Admins can view all reservations, update status directly, and delete records.
 - **Filtering, Pagination & Sorting**:
   - Filter reservations dynamically using JPA `Specification` by status, minimum price, and maximum price.
-  - Supports `page`, `size`, `sortBy`, and `sortDir` parameters.
+  - Supports `page`, `size`, and optional `sort` parameters.
 - **Swagger / OpenAPI Documentation**:
   - Interactive Swagger UI documentation with Bearer JWT token support at `/swagger-ui.html` and OpenAPI specification at `/v3/api-docs`.
 - **Automated Startup Data Seeder**:
@@ -57,8 +57,12 @@ The application can be configured via environment variables or directly inside `
 | `DB_URL` | `jdbc:mysql://localhost:3306/resource_booking_db?...` | JDBC Database Connection URL |
 | `DB_USERNAME` | `root` | Database Username |
 | `DB_PASSWORD` | `admin` | Database Password |
-| `JWT_SECRET` | `ReplaceThisWithALongRandomBase64SecretKey...` | Secret key used for signing JWTs (min 256 bits) |
-| `JWT_EXPIRATION_MS` | `86400000` (24 hours) | Token expiration duration in milliseconds |
+| `JWT_SECRET` | _(empty)_ | Signing key, min 32 characters. Required outside `dev`/`test`. In those profiles a one-off key is generated if this is unset (tokens die on restart). |
+| `JWT_EXPIRATION_MS` | `86400000` (24 hours) | Token lifetime in milliseconds |
+| `SEED_ADMIN_PASSWORD` | `Admin@123` | Password for the seeded `admin` user (`dev` only) |
+| `SEED_USER_PASSWORD` | `User@123` | Password for the seeded `user` user (`dev` only) |
+
+Auth is Bearer JWT in the `Authorization` header (no cookies). CSRF is ignored on `/auth/**`, `/api/**`, and Swagger paths. Do not add cookie-based login without turning CSRF back on.
 
 ---
 
@@ -77,9 +81,14 @@ cd backend-developer-as-final-72056-raviraju
 *(On Windows PowerShell, use `.\mvnw.cmd clean package -DskipTests`)*
 
 ### 3. Run the Application
+
+Use the `dev` profile so the seeder creates test users and sample resources:
+
 ```bash
-./mvnw spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
+
+*(On Windows PowerShell: `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"`)*
 
 The API will start at: `http://localhost:8080`
 
@@ -98,7 +107,7 @@ Run the complete test suite including security tests, controller endpoint tests,
 
 ## Development Seeded Accounts
  
-When running with the `dev` profile (active by default for development), the application automatically provisions initial accounts for testing. Passwords have safe dev defaults and can be customized via `SEED_ADMIN_PASSWORD` and `SEED_USER_PASSWORD` environment variables:
+When started with the `dev` profile, the app seeds test accounts. Override passwords with `SEED_ADMIN_PASSWORD` and `SEED_USER_PASSWORD` if you want:
 
 | Username | Default Password | Role | Description |
 |:---|:---|:---|:---|

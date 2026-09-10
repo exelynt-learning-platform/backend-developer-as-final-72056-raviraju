@@ -41,30 +41,26 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        if (seedAdminPassword != null && !seedAdminPassword.isBlank()) {
-            if (!userRepository.existsByUsername("admin")) {
-                User admin = User.builder()
-                        .username("admin")
-                        .email("admin@booking.com")
-                        .password(passwordEncoder.encode(seedAdminPassword.trim()))
-                        .role(Role.ADMIN)
-                        .build();
-                userRepository.save(admin);
-                log.info("Seeded dev ADMIN user (username='admin').");
-            }
+        if (!userRepository.existsByUsername("admin")) {
+            User admin = User.builder()
+                    .username("admin")
+                    .email("admin@booking.com")
+                    .password(passwordEncoder.encode(seedAdminPassword.trim()))
+                    .role(Role.ADMIN)
+                    .build();
+            userRepository.save(admin);
+            log.info("Seeded ADMIN user (username=admin).");
         }
 
-        if (seedUserPassword != null && !seedUserPassword.isBlank()) {
-            if (!userRepository.existsByUsername("user")) {
-                User normalUser = User.builder()
-                        .username("user")
-                        .email("user@booking.com")
-                        .password(passwordEncoder.encode(seedUserPassword.trim()))
-                        .role(Role.USER)
-                        .build();
-                userRepository.save(normalUser);
-                log.info("Seeded dev USER user (username='user').");
-            }
+        if (!userRepository.existsByUsername("user")) {
+            User normalUser = User.builder()
+                    .username("user")
+                    .email("user@booking.com")
+                    .password(passwordEncoder.encode(seedUserPassword.trim()))
+                    .role(Role.USER)
+                    .build();
+            userRepository.save(normalUser);
+            log.info("Seeded USER user (username=user).");
         }
     }
 

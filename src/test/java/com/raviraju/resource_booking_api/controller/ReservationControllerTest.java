@@ -10,9 +10,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -26,24 +26,37 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.raviraju.resource_booking_api.config.SecurityBeansConfig;
+import com.raviraju.resource_booking_api.config.SecurityConfig;
 import com.raviraju.resource_booking_api.dto.PageResponse;
 import com.raviraju.resource_booking_api.dto.ReservationRequest;
 import com.raviraju.resource_booking_api.dto.ReservationResponse;
 import com.raviraju.resource_booking_api.dto.ReservationStatusUpdateRequest;
 import com.raviraju.resource_booking_api.entity.ReservationStatus;
+import com.raviraju.resource_booking_api.exception.GlobalExceptionHandler;
+import com.raviraju.resource_booking_api.security.CustomUserDetailsService;
+import com.raviraju.resource_booking_api.security.JwtAuthenticationFilter;
+import com.raviraju.resource_booking_api.security.JwtService;
 import com.raviraju.resource_booking_api.service.ReservationService;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = ReservationController.class)
+@Import({SecurityConfig.class, SecurityBeansConfig.class, JwtAuthenticationFilter.class, GlobalExceptionHandler.class})
 class ReservationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private ReservationService reservationService;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     @WithMockUser(username = "alice", roles = "USER")
